@@ -12,89 +12,199 @@
 
 ########################### Blibliothèques #######################################"
 
+import random
+import tkinter as tk  
+import time
 
-import tkinter as tk
-import random as r
-from functools import partial
+# ---Fonctions---  
+
+def generer_nombre(): #fonction permettant de générer un 2 ou un 4 aléatoirement.
+    tmp = random.random()
+    if tmp < ratio: 
+        return 2 
+    return 4
+
+def generate():   #fonction permettant d'ajouter des nombres dans des cases aléatoires du tableau, en fonction de si elles sont vides ou non. 
+    alea_case = []    
+    for row in range(board_size): 
+        for col in range(board_size):
+            if board[row][col] is blank:
+                alea_case.append([row,col])
+
+    row, col = random.choice(alea_case) 
+    board[row][col] = generer_nombre()
+
+def create_board(win): #tableau affiché en cas de victoire
+    global score_show
+
+    for i in range(16):
+        row = i//4
+        col = i%4
+        label[i] = tk.Label(win, width=10, height=5, background='#d3d3d3', relief='ridge')
+        label[i].grid(row=row+1, column=col)
+
+    tk.Label(win, text="Score").grid(row=0 , column=2)
+
+    score_show = tk.Label(win, text=score)
+    score_show.grid(row=0 , column=3)
+
+def update_board(): #création du tableau
+    for i in range(16):
+        row = i//4
+        col = i%4
+        text = board[row][col]
+        if text == 0:
+            text = ''
+        label[i]["text"] = text
+
+    score_show["text"] = score
+
+def move_board(direction, update=False): #fonction de conditions de mouvement dans le tableau.
+    global score
+
+    if direction == 0: 
+        for j in range(board_size):
+            for i in range(board_size):
+                new_board[i][j] = board[i][j] 
+
+    if direction == 1:
+        for i in range(board_size):
+            for j in range(board_size):
+                new_board[i][j] = board[board_size-1-i][board_size-1-j]
+
+    if direction == 2:
+        for i in range(board_size):
+            for j in range(board_size):
+                new_board[i][j] = board[board_size-1-j][i]
+
+    if direction == 3:
+        for j in range(board_size):
+            for i in range(board_size):
+                new_board[i][j] = board[j][board_size-1-i]
+
+    tmp_board = [[blank for _ in range(board_size)] for _ in range(board_size)]
+    tmp_score = 0
+
+    for j in range(board_size):
+        top = 0
+        for i in range(board_size):
+            if new_board[i][j] != blank:
+                if tmp_board[top][j] == blank:
+                    tmp_board[top][j] = new_board[i][j]
+                elif new_board[i][j] == tmp_board[top][j]:
+                    tmp_board[top][j] *= 2
+                    top += 1
+                    tmp_score += tmp_board[top-1][j]
+                else:
+                    top += 1
+                    tmp_board[top][j] = new_board[i][j]
+
+    if update:
+        score += tmp_score
+        if direction == 0:
+            for j in range(board_size):
+                for i in range(board_size):
+                    board[i][j] = tmp_board[i][j]
+        if direction == 1:
+            for j in range(board_size):
+                for i in range(board_size):
+                    board[i][j] = tmp_board[board_size-1-i][board_size-1-j]
+        if direction == 3:
+            for j in range(board_size):
+                for i in range(board_size):
+                    board[i][j] = tmp_board[board_size-1-j][i]
+        if direction == 2:
+            for j in range(board_size):
+                for i in range(board_size):
+                    board[i][j] = tmp_board[j][board_size-1-i]
+
+    for i in range(board_size):
+        for j in range(board_size):
+            if tmp_board[i][j] is not new_board[i][j]:
+                return True
+
+    return False
 
 
-########################### PARAMETRE FENETRE + VARIABLE GLOBAL #######################################"
+def next_turn():
+    empty_check = False
 
-a, b = 850,850
+    for row in range(board_size):
+        for col in range(board_size):
+            if board[row][col] == blank:
+                empty_check = True
 
-root = tk.Tk()
-root.title("tas de sable")
-root.geometry("950x900")
-canvas = tk.Canvas(root, width = a, height = b,bg="white")
-nbcase=16
-taillecase=(4*(a//nbcase))
-configcourante=[]
-configbasique=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-x0=1
-y0=1
+    if not empty_check:
+        for direct in range(4):
+            move_board(direct)
 
-########################### FONCTIONS #######################################"
-configcourante=configbasique
+def game_over():
+    for direct in range(4):
+        if move_board(direct, False):
+            return False
+    return True
 
-def coloration():
-    global colorcarre
-    colorcarre=[]
-    for i in range (len(configcourante)):
-        for j in range (len(configcourante[i])):
-            if configcourante[i][j]==0:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#ccc',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==4:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#eee4da',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==8:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#ede0c8',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==16:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#f2b179',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==32:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#f59563',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==64:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#f67c5f',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==128:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#f65e3b',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==256:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#edcf72',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==512:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#edcc61',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==1024:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#edc850',outline='#b7b7b7',width=10))
-            elif configcourante[i][j]==2048:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#edc53f',outline='#b7b7b7',width=10))
-            else:
-                colorcarre.append(canvas.create_rectangle(x0 +taillecase*j,y0+taillecase*i,x0 +taillecase*(j+1),y0+taillecase*(i+1),fill='#edc22e',outline='#b7b7b7',width=10))
+def get_input(event):
+    global direction
 
+    key = event.keysym
+    print('key:', key)
 
-def play():
-    return
+    if key == "Up":
+        direction = 0
+    if key == "Down":
+        direction = 1
+    if key == "Left":
+        direction = 2
+    if key == "Right":
+        direction = 3
 
-def exit():
-    return root.destroy
+def game_loop():
+    global direction
 
+    if game_over():
+        win.destroy()   # ferme la fenêtre
+    else:        
+        if direction is not None:        # ne marche que si une touche est pressée
+            move_board(direction, True)  # permet le mouvement
+            generate()                   # créer un nouveau nombre (2 ou 4)
+            update_board()               # met à jour les textes 
+            direction = None             # reset les directions
+        win.after(250, game_loop)        # ré-enclenchable 0,25 secondes plus tard 
 
+# - variables 
 
+direction = None
+label = {}
 
-################################################BOUTONS##################################
+board_size = 4
+blank = 0
+board     = [[blank for _ in range(board_size)] for _ in range(board_size)]
+new_board = [[blank for _ in range(board_size)] for _ in range(board_size)]
+score = 0
+ratio = 0.9
 
+direction_move = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
+# - main
 
-playB=tk.Button(root, text ="Play", command=coloration)
-playB.grid(row=1,column=0)
+if __name__ == '__main__':
 
-exitB=tk.Button(root, text ="Exit", command=root.destroy)
-exitB.grid(row=0,column=0)
+    win = tk.Tk()
+    win.title("2048")
+    win.geometry("345x430")
 
+    win.bind("<Key>", get_input)  
 
-########################### grid #######################################"
-grid1=canvas.grid(row=1,column=1 ,rowspan=6,columnspan=6)
+    create_board(win)  
 
+    generate()         # generate le premier nombre du début
+    generate()         # generate le deuxième nombre du début
 
-########################### bind #######################################"
-canvas.bind()
-canvas.bind()
-canvas.bind()
+    update_board()     # change le texte 
 
-########################### MAINLOOP du programme #######################################"
-root.mainloop()
+    game_loop()        # démarre la boucle
+
+    win.mainloop()      
+
+    print("Votre score est", score)  
