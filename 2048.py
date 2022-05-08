@@ -12,199 +12,202 @@
 
 ########################### Blibliothèques #######################################"
 
-import random
 import tkinter as tk  
 import time
+import random 
 
 # ---Fonctions---  
 
-def generer_nombre(): #fonction permettant de générer un 2 ou un 4 aléatoirement.
-    tmp = random.random()
-    if tmp < ratio: 
-        return 2 
-    return 4
+def generer_nombre(): #fonction permettant de générer un 2 ou un 4 aléatoirement
+    val = random.random()
+    if val < rate: 
+        return 2 #90% de chance de générer un 2.
+    return 4 #10% de chance de générer un 4.
 
-def generate():   #fonction permettant d'ajouter des nombres dans des cases aléatoires du tableau, en fonction de si elles sont vides ou non. 
-    alea_case = []    
-    for row in range(board_size): 
-        for col in range(board_size):
-            if board[row][col] is blank:
-                alea_case.append([row,col])
+def generation():   #fonction permettant d'ajouter des nombres dans des cases aléatoires du tableau, en fonction de si elles sont vides ou non. 
+    case_random = []    
+    for row in range(zone_taille): 
+        for col in range(zone_taille):
+            if zone[row][col] is vide:
+                case_random.append([row,col]) 
+                
+    row, col = random.choice(case_random) 
+    zone[row][col] = generer_nombre()
 
-    row, col = random.choice(alea_case) 
-    board[row][col] = generer_nombre()
-
-def create_board(win): #tableau affiché en cas de victoire
-    global score_show
-
+def creer_zone(window): #crée la fenêtre
+    global affichage_score
+    
     for i in range(16):
         row = i//4
         col = i%4
-        label[i] = tk.Label(win, width=10, height=5, background='#d3d3d3', relief='ridge')
+        label[i] = tk.Label(window, width=10, height=5, background='#d3d3d3', relief='ridge')
         label[i].grid(row=row+1, column=col)
 
-    tk.Label(win, text="Score").grid(row=0 , column=2)
+    tk.Label(window, text="Score").grid(row=0 , column=2)
+        
+    affichage_score = tk.Label(window, text=score)
+    affichage_score.grid(row=0 , column=3)
 
-    score_show = tk.Label(win, text=score)
-    score_show.grid(row=0 , column=3)
-
-def update_board(): #création du tableau
-    for i in range(16):
+def maj_zone(): #mise à jour du tableau
+    for i in range(16): 
         row = i//4
         col = i%4
-        text = board[row][col]
+        text = zone[row][col]
         if text == 0:
             text = ''
         label[i]["text"] = text
 
-    score_show["text"] = score
+    affichage_score["text"] = score
 
-def move_board(direction, update=False): #fonction de conditions de mouvement dans le tableau.
+def move_zone(direction, update=False): #fonction de conditions de mouvement dans le tableau.
     global score
 
-    if direction == 0: 
-        for j in range(board_size):
-            for i in range(board_size):
-                new_board[i][j] = board[i][j] 
-
-    if direction == 1:
-        for i in range(board_size):
-            for j in range(board_size):
-                new_board[i][j] = board[board_size-1-i][board_size-1-j]
-
-    if direction == 2:
-        for i in range(board_size):
-            for j in range(board_size):
-                new_board[i][j] = board[board_size-1-j][i]
-
-    if direction == 3:
-        for j in range(board_size):
-            for i in range(board_size):
-                new_board[i][j] = board[j][board_size-1-i]
-
-    tmp_board = [[blank for _ in range(board_size)] for _ in range(board_size)]
-    tmp_score = 0
-
-    for j in range(board_size):
+    if direction == 0: #déplacement vers le haut
+        for j in range(zone_taille):
+            for i in range(zone_taille):
+                new_zone[i][j] = zone[i][j] 
+                
+    if direction == 1: #déplacement vers le bas
+        for i in range(zone_taille):
+            for j in range(zone_taille):
+                new_zone[i][j] = zone[zone_taille-1-i][zone_taille-1-j]
+                
+    if direction == 2: #déplacement vers la gauche
+        for i in range(zone_taille):
+            for j in range(zone_taille):
+                new_zone[i][j] = zone[zone_taille-1-j][i]
+                
+    if direction == 3: #déplacement vers la droite
+        for j in range(zone_taille):
+            for i in range(zone_taille):
+                new_zone[i][j] = zone[j][zone_taille-1-i]
+                
+    tempo_zone = [[vide for _ in range(zone_taille)] for _ in range(zone_taille)] #variable temporaire
+    tempo_score = 0 #variable temporaire 
+    
+    for j in range(zone_taille):
         top = 0
-        for i in range(board_size):
-            if new_board[i][j] != blank:
-                if tmp_board[top][j] == blank:
-                    tmp_board[top][j] = new_board[i][j]
-                elif new_board[i][j] == tmp_board[top][j]:
-                    tmp_board[top][j] *= 2
+        for i in range(zone_taille):
+            if new_zone[i][j] != vide:
+                if tempo_zone[top][j] == vide:
+                    tempo_zone[top][j] = new_zone[i][j]
+                elif new_zone[i][j] == tempo_zone[top][j]:
+                    tempo_zone[top][j] *= 2
                     top += 1
-                    tmp_score += tmp_board[top-1][j]
+                    tempo_score += tempo_zone[top-1][j]
                 else:
                     top += 1
-                    tmp_board[top][j] = new_board[i][j]
-
-    if update:
-        score += tmp_score
+                    tempo_zone[top][j] = new_zone[i][j]
+                    
+    if update: 
+        score += tempo_score
+        # changement de la zone en fonction du déplacement choisi #
         if direction == 0:
-            for j in range(board_size):
-                for i in range(board_size):
-                    board[i][j] = tmp_board[i][j]
+            for j in range(zone_taille):
+                for i in range(zone_taille):
+                    zone[i][j] = tempo_zone[i][j]
         if direction == 1:
-            for j in range(board_size):
-                for i in range(board_size):
-                    board[i][j] = tmp_board[board_size-1-i][board_size-1-j]
+            for j in range(zone_taille):
+                for i in range(zone_taille):
+                    zone[i][j] = tempo_zone[zone_taille-1-i][zone_taille-1-j]
         if direction == 3:
-            for j in range(board_size):
-                for i in range(board_size):
-                    board[i][j] = tmp_board[board_size-1-j][i]
+            for j in range(zone_taille):
+                for i in range(zone_taille):
+                    zone[i][j] = tempo_zone[zone_taille-1-j][i]
         if direction == 2:
-            for j in range(board_size):
-                for i in range(board_size):
-                    board[i][j] = tmp_board[j][board_size-1-i]
-
-    for i in range(board_size):
-        for j in range(board_size):
-            if tmp_board[i][j] is not new_board[i][j]:
+            for j in range(zone_taille):
+                for i in range(zone_taille):
+                    zone[i][j] = tempo_zone[j][zone_taille-1-i]
+                    
+    for i in range(zone_taille):
+        for j in range(zone_taille):
+            if tempo_zone[i][j] is not new_zone[i][j]:
                 return True
-
+            
     return False
 
-
-def next_turn():
-    empty_check = False
-
-    for row in range(board_size):
-        for col in range(board_size):
-            if board[row][col] == blank:
-                empty_check = True
-
-    if not empty_check:
+def prochain_tour():
+    vide_verif = False #vérification des cases vides.
+                         
+    for row in range(zone_taille):
+        for col in range(zone_taille):
+            if zone[row][col] == vide:
+                vide_verif = True
+                         
+    if not vide_verif:
         for direct in range(4):
-            move_board(direct)
+            move_zone(direct)
 
 def game_over():
     for direct in range(4):
-        if move_board(direct, False):
-            return False
+        if move_zone(direct, False):
+            return False 
     return True
 
 def get_input(event):
     global direction
-
-    key = event.keysym
-    print('key:', key)
-
-    if key == "Up":
+    
+    touche = event.keysym #synchronisation touche/jeu
+    print('Touche :', touche)
+    
+    if touche == "Up":
         direction = 0
-    if key == "Down":
+    if touche == "Down":
         direction = 1
-    if key == "Left":
+    if touche == "Left":
         direction = 2
-    if key == "Right":
+    if touche == "Right":
         direction = 3
-
-def game_loop():
+    
+def game_loop(): #fonction de la boucle principale du jeu. fonction principale.
     global direction
-
+    
     if game_over():
-        win.destroy()   # ferme la fenêtre
+        window.destroy()   # ferme la fenêtre
     else:        
         if direction is not None:        # ne marche que si une touche est pressée
-            move_board(direction, True)  # permet le mouvement
-            generate()                   # créer un nouveau nombre (2 ou 4)
-            update_board()               # met à jour les textes 
-            direction = None             # reset les directions
-        win.after(250, game_loop)        # ré-enclenchable 0,25 secondes plus tard 
+            move_zone(direction, True)  # permet le mouvement (voir plus haut)
+            generation()                   # génère un nouveau nombre (2 ou 4) (voir plus haut)
+            maj_zone()               # met-à-jour les nombres dans les zones (voir plus haut)
+            direction = None             # reset les directions pour le tour suivant.
+        window.after(250, game_loop)        # temps de transition (250 ms)
+        
+# - Variables #
 
-# - variables 
+direction = None #variable de direction
+label = {} #variable de paramétrage du tableau ()
 
-direction = None
-label = {}
-
-board_size = 4
-blank = 0
-board     = [[blank for _ in range(board_size)] for _ in range(board_size)]
-new_board = [[blank for _ in range(board_size)] for _ in range(board_size)]
-score = 0
-ratio = 0.9
+zone_taille = 4 
+vide = 0
+zone     = [[vide for _ in range(zone_taille)] for _ in range(zone_taille)]
+new_zone = [[vide for _ in range(zone_taille)] for _ in range(zone_taille)] 
+score = 0 
+rate = 0.9 #probabilité de tomber sur une case 2.
 
 direction_move = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
-# - main
+# Main - Successions d'exécutions du programme
 
 if __name__ == '__main__':
+    # Paramètres de la fenêtre #
+    window = tk.Tk() #ouvre Tkinter
+    window.title("2048") #titre de la fenêtre
+    window.geometry("345x430") #taille et proportions de la fenêtre
+    
+    # -------------------------#
 
-    win = tk.Tk()
-    win.title("2048")
-    win.geometry("345x430")
+    window.bind("<Key>", get_input)  
 
-    win.bind("<Key>", get_input)  
+    creer_zone(window)  # crée les labels 
+    
+    generation()         # génère le premier nombre du début
+    generation()         # génère le deuxième nombre du début
+    
+    maj_zone()     # applique les changements de la zone de jeu
+    
+    game_loop()        # démarre la boucle principale du jeu !
+    
+    window.mainloop()     # ouvre la fenêtre tkinter
+    
+    print("Votre score est", score)   #affichage du score dans le terminal.
 
-    create_board(win)  
-
-    generate()         # generate le premier nombre du début
-    generate()         # generate le deuxième nombre du début
-
-    update_board()     # change le texte 
-
-    game_loop()        # démarre la boucle
-
-    win.mainloop()      
-
-    print("Votre score est", score)  
