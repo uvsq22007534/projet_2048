@@ -5,7 +5,7 @@
 # Nel RIVART
 # Morgan NOIRET
 # Bertille LANOIRE
-# https://github.com/uvsq22100752/projet_2048
+# https://github.com/uvsq22007534/projet_2048
 #########################################
 Programme permettant de jouer au jeu 2048. Utiliser les flèches directionnelles du clavier permet de déplacer les nombres. Lorsque toutes les cases sont pleines et que plus aucune combinaison n'est possible, la partie se termine et votre score s'affiche.
 
