@@ -12,7 +12,7 @@
 
 ########################### Blibliothèques #######################################"
 
-import tkinter as tk  
+import tkinter as tk 
 import time
 import random 
 
@@ -37,7 +37,7 @@ def generation():   #fonction permettant d'ajouter des nombres dans des cases al
 def creer_zone(window): #crée la fenêtre
     global affichage_score
     
-    for i in range(16):
+    for i in range(16): #nombre de cases (4x4)
         row = i//4
         col = i%4
         label[i] = tk.Label(window, width=10, height=5, background='#d3d3d3', relief='ridge')
@@ -138,13 +138,13 @@ def prochain_tour():
         for direct in range(4):
             move_zone(direct)
 
-def game_over():
+def game_over(): #problème
     for direct in range(4):
         if move_zone(direct, False):
             return False 
     return True
 
-def get_input(event):
+def get_input(event): #fonction permettant de faire déplacer la grille avec les touches du clavier
     global direction
     
     touche = event.keysym #synchronisation touche/jeu
@@ -171,6 +171,17 @@ def game_loop(): #fonction de la boucle principale du jeu. fonction principale.
             maj_zone()               # met-à-jour les nombres dans les zones (voir plus haut)
             direction = None             # reset les directions pour le tour suivant.
         window.after(250, game_loop)        # temps de transition (250 ms)
+
+
+
+def close_window():
+    window.destroy()
+def Exit() :
+    window.destroy
+
+
+
+
         
 # - Variables #
 
@@ -186,6 +197,7 @@ rate = 0.9 #probabilité de tomber sur une case 2.
 
 direction_move = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
+
 # Main - Successions d'exécutions du programme
 
 if __name__ == '__main__':
@@ -193,10 +205,14 @@ if __name__ == '__main__':
     window = tk.Tk() #ouvre Tkinter
     window.title("2048") #titre de la fenêtre
     window.geometry("345x430") #taille et proportions de la fenêtre
-    
+    bouton_start = tk.Button(text="Start", command= game_loop)
+    bouton_start.place(x = 50, y= 350)
+    bouton_exit = tk.Button(text="Exit", command= Exit())
+    bouton_exit.place(x= 150, y=350)
     # -------------------------#
 
-    window.bind("<Key>", get_input)  
+    window.bind("<Key>", get_input) 
+    
 
     creer_zone(window)  # crée les labels 
     
@@ -205,9 +221,9 @@ if __name__ == '__main__':
     
     maj_zone()     # applique les changements de la zone de jeu
     
-    game_loop()        # démarre la boucle principale du jeu !
+    
     
     window.mainloop()     # ouvre la fenêtre tkinter
     
-    print("Votre score est", score)   #affichage du score dans le terminal.
+    print("Votre score est", score)   #affichage du score dans le terminal
 
